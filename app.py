@@ -1,6 +1,5 @@
 import streamlit as st
 import random
-import time
 
 # Set up page configuration
 st.set_page_config(page_title="Tambola Number Caller", layout="wide")
@@ -12,6 +11,8 @@ if "current_number" not in st.session_state:
     st.session_state.current_number = None
 if "game_over" not in st.session_state:
     st.session_state.game_over = False
+if "should_speak" not in st.session_state:
+    st.session_state.should_speak = False
 
 st.title("🔢 Tambola / Housie Number Caller")
 st.write("Welcome to the automated Tambola caller! Click 'Next Number' to draw.")
@@ -25,6 +26,7 @@ with st.sidebar:
         st.session_state.called_numbers = []
         st.session_state.current_number = None
         st.session_state.game_over = False
+        st.session_state.should_speak = False
         st.rerun()
         
     st.markdown("---")
@@ -45,6 +47,7 @@ with col1:
                 next_num = random.choice(remaining)
                 st.session_state.called_numbers.append(next_num)
                 st.session_state.current_number = next_num
+                st.session_state.should_speak = True  # Trigger audio flag
             else:
                 st.session_state.game_over = True
     else:
@@ -60,6 +63,25 @@ with col1:
             """, 
             unsafe_allow_html=True
         )
+        
+        # Audio Announcement Trick via HTML/JS
+        if st.session_state.should_speak:
+            # We construct a text phrase for the caller (e.g., "Number 45")
+            speech_text = f"Number {st.session_state.current_number}"
+            
+            # Injecting JavaScript to speak out loud
+            st.components.v1.html(
+                f"""
+                <script>
+                    var msg = new SpeechSynthesisUtterance("{speech_text}");
+                    msg.rate = 0.9; // Adjust speed (1.0 is default)
+                    window.speechSynthesis.speak(msg);
+                </script>
+                """,
+                height=0,
+            )
+            # Turn off flag so it doesn't repeat speaking if the page reruns for other reasons
+            st.session_state.should_speak = False
     else:
         st.info("Click 'Next Number' to begin the game.")
 
@@ -67,7 +89,6 @@ with col2:
     st.subheader("The Board")
     
     # Generate the 90-number grid view
-    # We display numbers 1 to 90 in rows of 10
     for row in range(9):
         cols = st.columns(10)
         for col_idx in range(10):
@@ -76,11 +97,8 @@ with col2:
             # Highlight if the number has been called
             if num in st.session_state.called_numbers:
                 if num == st.session_state.current_number:
-                    # Blink/Highlight current number
                     cols[col_idx].markdown(f"<div style='text-align:center; background-color:#ff4b4b; color:white; font-weight:bold; border-radius:5px; padding:5px;'>{num}</div>", unsafe_allow_html=True)
                 else:
-                    # Regular called number
                     cols[col_idx].markdown(f"<div style='text-align:center; background-color:#29b5e8; color:white; font-weight:bold; border-radius:5px; padding:5px;'>{num}</div>", unsafe_allow_html=True)
             else:
-                # Uncalled number
                 cols[col_idx].markdown(f"<div style='text-align:center; color:#b0b0b0; border: 1px solid #e0e0e0; border-radius:5px; padding:5px;'>{num}</div>", unsafe_allow_html=True)

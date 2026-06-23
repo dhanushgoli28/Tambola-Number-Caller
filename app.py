@@ -37,7 +37,7 @@ with st.sidebar:
 
 
 # Core Auto-Calling Fragment System
-@st.fragment(run_every=5.0 if st.session_state.is_playing and not st.session_state.game_over else None)
+@st.fragment(run_every=3.0 if st.session_state.is_playing and not st.session_state.game_over else None)
 def auto_caller_loop():
     # 1. If playing, draw a number automatically on the 5-second tick
     if st.session_state.is_playing and not st.session_state.game_over:

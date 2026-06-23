@@ -1,6 +1,5 @@
 import streamlit as st
 import random
-import time
 
 # Set up page configuration
 st.set_page_config(page_title="Tambola Number Caller", layout="wide")
@@ -36,13 +35,11 @@ with st.sidebar:
     st.markdown("---")
     st.write(f"**Numbers Called:** {len(st.session_state.called_numbers)} / 90")
 
-# Layout Setup
-col1, col2 = st.columns([1, 2])
 
 # Core Auto-Calling Fragment System
 @st.fragment(run_every=5.0 if st.session_state.is_playing and not st.session_state.game_over else None)
 def auto_caller_loop():
-    # If playing, draw a number automatically on the 5-second tick
+    # 1. If playing, draw a number automatically on the 5-second tick
     if st.session_state.is_playing and not st.session_state.game_over:
         remaining = [n for n in range(1, 91) if n not in st.session_state.called_numbers]
         if remaining:
@@ -54,10 +51,13 @@ def auto_caller_loop():
             st.session_state.game_over = True
             st.session_state.is_playing = False
 
+    # 2. CREATE COLUMNS INSIDE THE FRAGMENT TO AVOID THE ERROR
+    col1, col2 = st.columns([1, 2])
+
     with col1:
         st.subheader("Controls & Current Number")
         
-        # Interactive UI buttons change state depending on play status
+        # Play / Pause Toggle Buttons
         if st.session_state.game_over:
             st.error("All 90 numbers have been called! Game Over.")
         elif not st.session_state.is_playing:
@@ -113,5 +113,5 @@ def auto_caller_loop():
                 else:
                     grid_cols[col_idx].markdown(f"<div style='text-align:center; color:#b0b0b0; border: 1px solid #e0e0e0; border-radius:5px; padding:5px;'>{num}</div>", unsafe_allow_html=True)
 
-# Call the layout fragment
+# Run the app's interactive loop
 auto_caller_loop()
